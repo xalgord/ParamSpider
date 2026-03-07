@@ -71,15 +71,6 @@ Here are a few examples of how to use `paramspider`:
    paramspider -d example.com -p '"><h1>reflection</h1>'
   ```
 
-## Contributing
-
-Contributions are welcome! If you'd like to contribute to `paramspider`, please follow these steps:
-
-1. Fork the repository.
-2. Create a new branch.
-3. Make your changes and commit them.
-4. Submit a pull request.
-
 
 ## Star History
 
