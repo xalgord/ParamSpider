@@ -84,7 +84,7 @@ def clean_urls(urls, extensions, placeholder):
             cleaned_urls.add(cleaned_url)
     return list(cleaned_urls)
 
-def fetch_and_clean_urls(domain, extensions, stream_output, proxy, placeholder, sources=None, urlscan_api_key=None, otx_api_key=None, virustotal_api_key=None):
+def fetch_and_clean_urls(domain, extensions, stream_output, proxy, placeholder, sources=None, urlscan_api_key=None, otx_api_key=None):
     """
     Fetch URLs from multiple sources, clean them, and save to file.
 
@@ -97,7 +97,6 @@ def fetch_and_clean_urls(domain, extensions, stream_output, proxy, placeholder, 
         sources (list or None): List of source names to use.
         urlscan_api_key (str or None): API key for URLScan.io.
         otx_api_key (str or None): API key for OTX AlienVault.
-        virustotal_api_key (str or None): API key for VirusTotal.
 
     Returns:
         bool: True if URLs were fetched and saved successfully, False otherwise.
@@ -108,7 +107,7 @@ def fetch_and_clean_urls(domain, extensions, stream_output, proxy, placeholder, 
         f"[sources: {Fore.MAGENTA}{', '.join(sources or DEFAULT_SOURCES)}{Style.RESET_ALL}]"
     )
 
-    urls = fetch_urls_from_sources(domain, proxy, sources, urlscan_api_key=urlscan_api_key, otx_api_key=otx_api_key, virustotal_api_key=virustotal_api_key)
+    urls = fetch_urls_from_sources(domain, proxy, sources, urlscan_api_key=urlscan_api_key, otx_api_key=otx_api_key)
 
     if not urls:
         logging.info(f"{Fore.YELLOW}[INFO]{Style.RESET_ALL} No URLs found for {Fore.CYAN}{domain}{Style.RESET_ALL}")
@@ -206,7 +205,6 @@ def main():
     # Load API keys from environment
     urlscan_api_key = os.environ.get("URLSCAN_API_KEY")
     otx_api_key = os.environ.get("OTX_API_KEY")
-    virustotal_api_key = os.environ.get("VIRUSTOTAL_API_KEY")
 
     if args.list:
         if not os.path.isfile(args.list):
@@ -219,12 +217,12 @@ def main():
             domains = list(set(domains))  # Remove duplicates
 
         for domain in domains:
-            fetch_and_clean_urls(domain, extensions, args.stream, args.proxy, args.placeholder, sources, urlscan_api_key=urlscan_api_key, otx_api_key=otx_api_key, virustotal_api_key=virustotal_api_key)
+            fetch_and_clean_urls(domain, extensions, args.stream, args.proxy, args.placeholder, sources, urlscan_api_key=urlscan_api_key, otx_api_key=otx_api_key)
 
     if args.domain:
         # Sanitize domain the same way as -l mode
         domain = args.domain.strip().lower().replace('https://', '').replace('http://', '')
-        fetch_and_clean_urls(domain, extensions, args.stream, args.proxy, args.placeholder, sources, urlscan_api_key=urlscan_api_key, otx_api_key=otx_api_key, virustotal_api_key=virustotal_api_key)
+        fetch_and_clean_urls(domain, extensions, args.stream, args.proxy, args.placeholder, sources, urlscan_api_key=urlscan_api_key, otx_api_key=otx_api_key)
 
 if __name__ == "__main__":
     main()
