@@ -34,14 +34,15 @@ pip install .
 
 ## Sources
 
-`paramspider` fetches URLs from **4 sources** by default — no API keys required:
+`paramspider` fetches URLs from **5 sources** by default:
 
 | Source | Description | API Key |
-|--------|-------------|---------|
+|--------|-------------|--------|
 | `wayback` | Wayback Machine (web.archive.org) | Not needed |
 | `commoncrawl` | Common Crawl (commoncrawl.org) | Not needed |
-| `otx` | AlienVault OTX (otx.alienvault.com) | Not needed |
-| `urlscan` | URLScan.io (urlscan.io) | Optional (higher rate limits) |
+| `otx` | AlienVault OTX (otx.alienvault.com) | Optional |
+| `urlscan` | URLScan.io (urlscan.io) | Optional |
+| `virustotal` | VirusTotal (virustotal.com) | **Required** |
 
 All sources are enabled by default and work without any configuration.
 
@@ -54,6 +55,7 @@ Add to your `~/.zshrc` or `~/.bashrc`:
 ```sh
 export URLSCAN_API_KEY="your-urlscan-api-key"
 export OTX_API_KEY="your-otx-api-key"
+export VIRUSTOTAL_API_KEY="your-virustotal-api-key"
 ```
 
 Then reload your shell:
@@ -66,6 +68,7 @@ source ~/.zshrc   # or source ~/.bashrc
 |----------|--------|-----------|
 | `URLSCAN_API_KEY` | URLScan.io | [urlscan.io/user/signup](https://urlscan.io/user/signup/) |
 | `OTX_API_KEY` | OTX AlienVault | [otx.alienvault.com](https://otx.alienvault.com/) → Settings → API Key |
+| `VIRUSTOTAL_API_KEY` | VirusTotal | [virustotal.com](https://www.virustotal.com/) → Profile → API Key |
 
 ## Usage
 

@@ -6,6 +6,7 @@ Fetches URLs from multiple web archive and threat intelligence sources:
   - Common Crawl (commoncrawl.org)
   - OTX AlienVault (otx.alienvault.com)
   - URLScan.io (urlscan.io)
+  - VirusTotal (virustotal.com)
 
 All endpoints verified against official API documentation (April 2026).
 """
@@ -16,7 +17,7 @@ from colorama import Fore, Style
 from . import client
 
 # All available source names
-AVAILABLE_SOURCES = ["wayback", "commoncrawl", "otx", "urlscan"]
+AVAILABLE_SOURCES = ["wayback", "commoncrawl", "otx", "urlscan", "virustotal"]
 DEFAULT_SOURCES = AVAILABLE_SOURCES  # Use all by default
 
 
@@ -359,6 +360,99 @@ def fetch_urlscan(domain, proxy, **kwargs):
     )
     return urls
 
+def fetch_virustotal(domain, proxy, **kwargs):
+    """
+    Fetch URLs from VirusTotal API v3.
+    Uses cursor-based pagination via links.next.
+
+    Endpoint: https://www.virustotal.com/api/v3/domains/{domain}/urls
+    Auth: Requires x-apikey header (free signup at virustotal.com).
+    Rate limit: 4 req/min, 500 req/day (free tier).
+    Docs: https://docs.virustotal.com/reference/domain-urls
+
+    Args:
+        domain (str): Target domain.
+        proxy (str or None): Proxy address.
+        **kwargs: Required. virustotal_api_key (str) for authentication.
+
+    Returns:
+        list: List of discovered URLs.
+    """
+    source_name = "VirusTotal"
+    api_key = kwargs.get("virustotal_api_key")
+
+    if not api_key:
+        logging.info(
+            f"{Fore.YELLOW}[INFO]{Style.RESET_ALL} "
+            f"Skipping {Fore.MAGENTA}{source_name}{Style.RESET_ALL} "
+            f"(VIRUSTOTAL_API_KEY not set)"
+        )
+        return []
+
+    logging.info(
+        f"{Fore.YELLOW}[INFO]{Style.RESET_ALL} "
+        f"Querying {Fore.MAGENTA}{source_name}{Style.RESET_ALL} for "
+        f"{Fore.CYAN}{domain}{Style.RESET_ALL} {Fore.GREEN}(authenticated){Style.RESET_ALL}"
+    )
+
+    extra_headers = {"x-apikey": api_key}
+
+    urls = set()
+    api_url = f"https://www.virustotal.com/api/v3/domains/{domain}/urls?limit=40"
+    max_pages = 25  # Safety limit (40 * 25 = 1000 URLs max)
+
+    for page_num in range(max_pages):
+        response = client.fetch_url_content(api_url, proxy, extra_headers=extra_headers)
+
+        if response is None:
+            if page_num == 0:
+                logging.warning(
+                    f"{Fore.RED}[WARN]{Style.RESET_ALL} "
+                    f"Failed to fetch from {source_name} for {Fore.CYAN}{domain}{Style.RESET_ALL}"
+                )
+            break
+
+        try:
+            data = response.json()
+        except Exception:
+            logging.warning(
+                f"{Fore.RED}[WARN]{Style.RESET_ALL} "
+                f"Failed to parse {source_name} response for {Fore.CYAN}{domain}{Style.RESET_ALL}"
+            )
+            break
+
+        # Check for API errors
+        if "error" in data:
+            error_msg = data["error"].get("message", "Unknown error")
+            logging.warning(
+                f"{Fore.RED}[WARN]{Style.RESET_ALL} "
+                f"{source_name} API error: {error_msg}"
+            )
+            break
+
+        results = data.get("data", [])
+        if not results:
+            break
+
+        for entry in results:
+            url = entry.get("attributes", {}).get("url", "")
+            if url:
+                urls.add(url)
+
+        # Cursor-based pagination: follow links.next
+        next_url = data.get("links", {}).get("next")
+        if not next_url:
+            break
+        api_url = next_url
+
+    urls = list(urls)
+    logging.info(
+        f"{Fore.YELLOW}[INFO]{Style.RESET_ALL} "
+        f"{Fore.MAGENTA}{source_name}{Style.RESET_ALL} → "
+        f"{Fore.GREEN}{len(urls)}{Style.RESET_ALL} URLs"
+    )
+    return urls
+
 
 # Map source names to their fetch functions
 SOURCE_FUNCTIONS = {
@@ -366,10 +460,11 @@ SOURCE_FUNCTIONS = {
     "commoncrawl": fetch_commoncrawl,
     "otx": fetch_otx,
     "urlscan": fetch_urlscan,
+    "virustotal": fetch_virustotal,
 }
 
 
-def fetch_urls_from_sources(domain, proxy, sources=None, urlscan_api_key=None, otx_api_key=None):
+def fetch_urls_from_sources(domain, proxy, sources=None, urlscan_api_key=None, otx_api_key=None, virustotal_api_key=None):
     """
     Fetch URLs from multiple sources and aggregate the results.
 
@@ -379,6 +474,7 @@ def fetch_urls_from_sources(domain, proxy, sources=None, urlscan_api_key=None, o
         sources (list or None): List of source names to use. If None, uses all sources.
         urlscan_api_key (str or None): API key for URLScan.io (higher rate limits).
         otx_api_key (str or None): API key for OTX AlienVault (higher rate limits).
+        virustotal_api_key (str or None): API key for VirusTotal (required for access).
 
     Returns:
         list: Aggregated, deduplicated list of URLs from all sources.
@@ -390,6 +486,7 @@ def fetch_urls_from_sources(domain, proxy, sources=None, urlscan_api_key=None, o
     source_kwargs = {
         "urlscan": {"urlscan_api_key": urlscan_api_key} if urlscan_api_key else {},
         "otx": {"otx_api_key": otx_api_key} if otx_api_key else {},
+        "virustotal": {"virustotal_api_key": virustotal_api_key} if virustotal_api_key else {},
     }
 
     all_urls = set()
