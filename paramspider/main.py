@@ -3,13 +3,9 @@ import os
 import logging
 import colorama
 from colorama import Fore, Style
-from dotenv import load_dotenv
 from . import client
 from .sources import fetch_urls_from_sources, AVAILABLE_SOURCES, DEFAULT_SOURCES
 from urllib.parse import urlparse, parse_qs, urlencode
-
-# Load .env file from current working directory (if present)
-load_dotenv()
 
 yellow_color_code = "\033[93m"
 reset_color_code = "\033[0m"

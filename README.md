@@ -16,7 +16,7 @@
 </p>
 
 
-![paramspider](https://github.com/devanshbatham/ParamSpider/blob/master/static/paramspider.png?raw=true)
+![paramspider](https://github.com/xalgord/ParamSpider/blob/master/static/paramspider.png?raw=true)
 
 ## About
 
@@ -27,7 +27,7 @@
 To install `paramspider`, follow these steps:
 
 ```sh
-git clone https://github.com/devanshbatham/paramspider
+git clone https://github.com/xalgord/ParamSpider
 cd paramspider
 pip install .
 ```
@@ -47,20 +47,23 @@ All sources are enabled by default and work without any configuration.
 
 ## Configuration
 
-API keys are loaded from a `.env` file in your working directory. This is **optional** — all sources work without keys.
+API keys are read from environment variables. This is **optional** — all sources work without keys.
+
+Add to your `~/.zshrc` or `~/.bashrc`:
 
 ```sh
-cp .env.example .env
+export URLSCAN_API_KEY="your-api-key-here"
 ```
 
-Then edit `.env`:
+Then reload your shell:
 
-```env
-# URLScan.io API Key (https://urlscan.io/user/signup/)
-URLSCAN_API_KEY=your-api-key-here
+```sh
+source ~/.zshrc   # or source ~/.bashrc
 ```
 
-> **Note:** The `.env` file is gitignored by default to prevent accidental key exposure.
+| Variable | Source | How to get |
+|----------|--------|-----------|
+| `URLSCAN_API_KEY` | URLScan.io | [urlscan.io/user/signup](https://urlscan.io/user/signup/) |
 
 ## Usage
 
@@ -127,4 +130,4 @@ paramspider -d example.com
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=devanshbatham/paramspider&type=Date)](https://star-history.com/#devanshbatham/paramspider&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=xalgord/ParamSpider&type=Date)](https://star-history.com/#xalgord/ParamSpider&Date)
