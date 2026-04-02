@@ -60,17 +60,40 @@ def fetch_url_content(url, proxy, extra_headers=None):
 
         try:
             response = requests.get(url, proxies=proxies, headers=headers, timeout=REQUEST_TIMEOUT)
+
+            # 404 means no results — don't retry, just return None
+            if response.status_code == 404:
+                return None
+
             response.raise_for_status()
             return response
-        except requests.exceptions.RequestException:
+        except requests.exceptions.HTTPError as e:
+            status = e.response.status_code if e.response is not None else "unknown"
             if i < MAX_RETRIES - 1:
-                logging.warning(f"Error fetching URL {url}. Retrying in 5 seconds... ({i + 1}/{MAX_RETRIES})")
-                time.sleep(5)
+                logging.warning(f"HTTP {status} for {url}. Retrying in 3s... ({i + 1}/{MAX_RETRIES})")
+                time.sleep(3)
             else:
-                logging.warning(f"Error fetching URL {url}. All retries exhausted.")
+                logging.warning(f"HTTP {status} for {url}. All retries exhausted.")
+        except requests.exceptions.Timeout:
+            if i < MAX_RETRIES - 1:
+                logging.warning(f"Timeout for {url}. Retrying in 3s... ({i + 1}/{MAX_RETRIES})")
+                time.sleep(3)
+            else:
+                logging.warning(f"Timeout for {url}. All retries exhausted.")
+        except requests.exceptions.ConnectionError:
+            if i < MAX_RETRIES - 1:
+                logging.warning(f"Connection error for {url}. Retrying in 3s... ({i + 1}/{MAX_RETRIES})")
+                time.sleep(3)
+            else:
+                logging.warning(f"Connection error for {url}. All retries exhausted.")
+        except requests.exceptions.RequestException as e:
+            if i < MAX_RETRIES - 1:
+                logging.warning(f"Error fetching {url}: {e}. Retrying in 3s... ({i + 1}/{MAX_RETRIES})")
+                time.sleep(3)
+            else:
+                logging.warning(f"Error fetching {url}: {e}. All retries exhausted.")
         except KeyboardInterrupt:
             logging.warning("Keyboard Interrupt received. Exiting gracefully...")
             sys.exit()
 
-    logging.error(f"Failed to fetch URL {url} after {MAX_RETRIES} retries.")
     return None
