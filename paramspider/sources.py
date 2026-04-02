@@ -184,19 +184,30 @@ def fetch_otx(domain, proxy, **kwargs):
 
     Endpoint: https://otx.alienvault.com/api/v1/indicators/domain/{domain}/url_list
     Pagination: Uses page= parameter with has_next field.
+    Auth: Pass otx_api_key via kwargs for higher rate limits.
 
     Args:
         domain (str): Target domain.
         proxy (str or None): Proxy address.
+        **kwargs: Optional. otx_api_key (str) for authenticated requests.
 
     Returns:
         list: List of discovered URLs.
     """
     source_name = "OTX AlienVault"
+    api_key = kwargs.get("otx_api_key")
+
+    auth_status = f" {Fore.GREEN}(authenticated){Style.RESET_ALL}" if api_key else ""
     logging.info(
         f"{Fore.YELLOW}[INFO]{Style.RESET_ALL} "
-        f"Querying {Fore.MAGENTA}{source_name}{Style.RESET_ALL} for {Fore.CYAN}{domain}{Style.RESET_ALL}"
+        f"Querying {Fore.MAGENTA}{source_name}{Style.RESET_ALL} for "
+        f"{Fore.CYAN}{domain}{Style.RESET_ALL}{auth_status}"
     )
+
+    # Per OTX docs: header must be exactly "X-OTX-API-KEY"
+    extra_headers = {}
+    if api_key:
+        extra_headers["X-OTX-API-KEY"] = api_key
 
     urls = []
     page = 1
@@ -207,7 +218,7 @@ def fetch_otx(domain, proxy, **kwargs):
             f"https://otx.alienvault.com/api/v1/indicators/domain/"
             f"{domain}/url_list?limit=200&page={page}"
         )
-        response = client.fetch_url_content(otx_url, proxy)
+        response = client.fetch_url_content(otx_url, proxy, extra_headers=extra_headers or None)
 
         if response is None:
             if page == 1:
@@ -358,7 +369,7 @@ SOURCE_FUNCTIONS = {
 }
 
 
-def fetch_urls_from_sources(domain, proxy, sources=None, urlscan_api_key=None):
+def fetch_urls_from_sources(domain, proxy, sources=None, urlscan_api_key=None, otx_api_key=None):
     """
     Fetch URLs from multiple sources and aggregate the results.
 
@@ -367,6 +378,7 @@ def fetch_urls_from_sources(domain, proxy, sources=None, urlscan_api_key=None):
         proxy (str or None): Proxy address.
         sources (list or None): List of source names to use. If None, uses all sources.
         urlscan_api_key (str or None): API key for URLScan.io (higher rate limits).
+        otx_api_key (str or None): API key for OTX AlienVault (higher rate limits).
 
     Returns:
         list: Aggregated, deduplicated list of URLs from all sources.
@@ -377,6 +389,7 @@ def fetch_urls_from_sources(domain, proxy, sources=None, urlscan_api_key=None):
     # Build kwargs per source
     source_kwargs = {
         "urlscan": {"urlscan_api_key": urlscan_api_key} if urlscan_api_key else {},
+        "otx": {"otx_api_key": otx_api_key} if otx_api_key else {},
     }
 
     all_urls = set()

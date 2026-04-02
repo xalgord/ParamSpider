@@ -47,12 +47,13 @@ All sources are enabled by default and work without any configuration.
 
 ## Configuration
 
-API keys are read from environment variables. This is **optional** — all sources work without keys.
+API keys are read from environment variables. This is **optional** — all sources work without keys, but authenticated requests get higher rate limits.
 
 Add to your `~/.zshrc` or `~/.bashrc`:
 
 ```sh
-export URLSCAN_API_KEY="your-api-key-here"
+export URLSCAN_API_KEY="your-urlscan-api-key"
+export OTX_API_KEY="your-otx-api-key"
 ```
 
 Then reload your shell:
@@ -64,6 +65,7 @@ source ~/.zshrc   # or source ~/.bashrc
 | Variable | Source | How to get |
 |----------|--------|-----------|
 | `URLSCAN_API_KEY` | URLScan.io | [urlscan.io/user/signup](https://urlscan.io/user/signup/) |
+| `OTX_API_KEY` | OTX AlienVault | [otx.alienvault.com](https://otx.alienvault.com/) → Settings → API Key |
 
 ## Usage
 
