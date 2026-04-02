@@ -1,11 +1,12 @@
 # Use a slim base image
-FROM python:3.8-slim
+FROM python:3.12-slim
 
 # Set the working directory
 WORKDIR /app
 
-# Install git and dependencies
-RUN apt-get update && apt-get install -y git 
+# Install git and dependencies, clean up apt cache
+RUN apt-get update && apt-get install -y --no-install-recommends git \
+    && rm -rf /var/lib/apt/lists/*
 
 # Clone ParamSpider repository
 RUN git clone https://github.com/devanshbatham/paramspider
@@ -14,7 +15,7 @@ RUN git clone https://github.com/devanshbatham/paramspider
 WORKDIR /app/paramspider
 
 # Install ParamSpider dependencies using pip
-RUN pip install .
+RUN pip install --no-cache-dir .
 
 # Set the entrypoint to run paramspider
 ENTRYPOINT ["paramspider"]

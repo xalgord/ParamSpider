@@ -8,9 +8,11 @@
 <p align="center">
   <a href="#about">📖 About</a> •
   <a href="#installation">🏗️ Installation</a> •
+  <a href="#sources">🌐 Sources</a> •
+  <a href="#configuration">⚙️ Configuration</a> •
   <a href="#usage">⛏️ Usage</a> •
   <a href="#examples">🚀 Examples</a> •
-  <a href="#contributing">🤝 Contributing</a> •
+  <a href="#contributing">🤝 Contributing</a>
 </p>
 
 
@@ -18,7 +20,7 @@
 
 ## About
 
-`paramspider` allows you to fetch URLs related to any domain or a list of domains from Wayback achives. It filters out "boring" URLs, allowing you to focus on the ones that matter the most.
+`paramspider` allows you to fetch URLs related to any domain or a list of domains from multiple web archive and threat intelligence sources. It filters out "boring" URLs, allowing you to focus on the ones that matter the most.
 
 ## Installation
 
@@ -30,19 +32,57 @@ cd paramspider
 pip install .
 ```
 
-## Usage
+## Sources
 
-To use `paramspider`, follow these steps:
+`paramspider` fetches URLs from **4 sources** by default — no API keys required:
+
+| Source | Description | API Key |
+|--------|-------------|---------|
+| `wayback` | Wayback Machine (web.archive.org) | Not needed |
+| `commoncrawl` | Common Crawl (commoncrawl.org) | Not needed |
+| `otx` | AlienVault OTX (otx.alienvault.com) | Not needed |
+| `urlscan` | URLScan.io (urlscan.io) | Optional (higher rate limits) |
+
+All sources are enabled by default and work without any configuration.
+
+## Configuration
+
+API keys are loaded from a `.env` file in your working directory. This is **optional** — all sources work without keys.
+
+```sh
+cp .env.example .env
+```
+
+Then edit `.env`:
+
+```env
+# URLScan.io API Key (https://urlscan.io/user/signup/)
+URLSCAN_API_KEY=your-api-key-here
+```
+
+> **Note:** The `.env` file is gitignored by default to prevent accidental key exposure.
+
+## Usage
 
 ```sh
 paramspider -d example.com
 ```
 
+### Options
+
+```
+  -d, --domain            Domain name to fetch related URLs for
+  -l, --list              File containing a list of domain names
+  -s, --stream            Stream URLs on the terminal
+  -p, --placeholder       Placeholder for parameter values (default: FUZZ)
+  --proxy                 Set the proxy address for web requests
+  --sources               Comma-separated list of sources to use (default: all)
+  --exclude-sources       Comma-separated list of sources to exclude
+```
+
 ## Examples
 
-Here are a few examples of how to use `paramspider`:
-
-- Discover URLs for a single domain:
+- Discover URLs for a single domain (uses all 4 sources):
 
   ```sh
   paramspider -d example.com
@@ -54,26 +94,37 @@ Here are a few examples of how to use `paramspider`:
   paramspider -l domains.txt
   ```
 
-- Stream URLs on the termial:
+- Use only specific sources:
 
-    ```sh 
-    paramspider -d example.com -s
-    ```
+  ```sh
+  paramspider -d example.com --sources wayback,otx
+  ```
+
+- Exclude slow sources:
+
+  ```sh
+  paramspider -d example.com --exclude-sources commoncrawl
+  ```
+
+- Stream URLs on the terminal:
+
+  ```sh
+  paramspider -d example.com -s
+  ```
 
 - Set up web request proxy:
 
-    ```sh
-    paramspider -d example.com --proxy '127.0.0.1:7890'
-    ```
-- Adding a placeholder for URL parameter values (default: "FUZZ"): 
+  ```sh
+  paramspider -d example.com --proxy '127.0.0.1:7890'
+  ```
+
+- Custom placeholder for URL parameter values (default: "FUZZ"):
 
   ```sh
-   paramspider -d example.com -p '"><h1>reflection</h1>'
+  paramspider -d example.com -p '"><h1>reflection</h1>'
   ```
 
 
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=devanshbatham/paramspider&type=Date)](https://star-history.com/#devanshbatham/paramspider&Date)
-
-
