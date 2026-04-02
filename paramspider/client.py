@@ -61,10 +61,13 @@ def fetch_url_content(url, proxy, extra_headers=None):
         try:
             response = requests.get(url, proxies=proxies, headers=headers, timeout=REQUEST_TIMEOUT)
 
-            # 404 = no results, 429 = rate limited — don't retry, return immediately
-            if response.status_code in (404, 429):
+            # Don't retry on these — they won't fix themselves
+            # 403 = auth failure, 404 = no results, 429 = rate limited
+            if response.status_code in (403, 404, 429):
                 if response.status_code == 429:
                     logging.warning(f"Rate limited (429) by {url.split('/')[2]}")
+                elif response.status_code == 403:
+                    logging.warning(f"Forbidden (403) for {url.split('/')[2]} — check API key")
                 return None
 
             response.raise_for_status()

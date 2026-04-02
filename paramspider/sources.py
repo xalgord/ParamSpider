@@ -395,7 +395,7 @@ def fetch_virustotal(domain, proxy, **kwargs):
         f"{Fore.CYAN}{domain}{Style.RESET_ALL} {Fore.GREEN}(authenticated){Style.RESET_ALL}"
     )
 
-    extra_headers = {"x-apikey": api_key}
+    extra_headers = {"X-Apikey": api_key}
 
     urls = set()
     api_url = f"https://www.virustotal.com/api/v3/domains/{domain}/urls?limit=40"
