@@ -61,8 +61,10 @@ def fetch_url_content(url, proxy, extra_headers=None):
         try:
             response = requests.get(url, proxies=proxies, headers=headers, timeout=REQUEST_TIMEOUT)
 
-            # 404 means no results — don't retry, just return None
-            if response.status_code == 404:
+            # 404 = no results, 429 = rate limited — don't retry, return immediately
+            if response.status_code in (404, 429):
+                if response.status_code == 429:
+                    logging.warning(f"Rate limited (429) by {url.split('/')[2]}")
                 return None
 
             response.raise_for_status()
